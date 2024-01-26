@@ -1,0 +1,17 @@
+#!/bin/bash
+
+COLOR_NONE='\033[0m'
+COLOR_YELLOW='\033[1;33m'
+COLOR_BLUE='\033[1;34m'
+
+if [ -z "$1" ]; then
+	printf "${COLOR_YELLOW}\nPlease Provide a msgid String.\n${COLOR_NONE}"
+	exit 1
+fi
+
+# Apply final additions to app.
+for f in $(ls -1 *.po 2>/dev/null); do \
+	printf "   updating: ${COLOR_BLUE}~/plasmasnow/po/$f.\n${COLOR_NONE}" && \
+	echo "msgid ""\""$1"\"" >> ~/plasmasnow/po/$f && \
+	cat $f >> ~/plasmasnow/po/$f; \
+done

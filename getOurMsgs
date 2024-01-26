@@ -9,19 +9,32 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-ls -1 ~/plasmasnow/po/*.po | sort > app
-cat app | sed -n -e 's/^.*\///p' > appclean
-
-ls -1 *.po | sort > avail
+ls -1 ~/plasmasnow/po/*.po 2>/dev/null | sort > appFiles
+cat appFiles | sed -n -e 's/^.*\///p' > appCleanFiles
 
 # Remove files avail but unwanted.
-for f in $(join -v2 appclean avail); do \
-	rm -f $f; \
-done;
-
-# Apply final additions to app.
-for f in $(ls -1 *.po); do \
-	printf "   updating: ${COLOR_BLUE}~/plasmasnow/po/$f.\n${COLOR_NONE}" && \
-	echo "msgid ""\""$1"\"" >> ~/plasmasnow/po/$f && \
-	cat $f >> ~/plasmasnow/po/$f; \
+ls -1 *.po 2>/dev/null | sort > availFiles
+for f in $(join -v2 appCleanFiles availFiles); do \
+	printf "${COLOR_YELLOW}\nRemoved, unused LINGUA.\n${COLOR_NONE}"
+	rm -f $f
 done
+if [[ $(sed -n '$=' availFiles) == "" ]]; then
+	printf "${COLOR_YELLOW}\nNo unused LINGUAs removed.\n${COLOR_NONE}"
+fi
+
+# Remove files wanted and avail, but already translated.
+ls -1 *.po 2>/dev/null | sort > availAppFiles
+
+ALREADY_TRANSLATED=""
+for f in $(cat availAppFiles)
+do
+	cat $f | egrep "\""$1"\"" 1>/dev/null 2>/dev/null && \
+		ALREADY_TRANSLATED=$?
+	if [ $ALREADY_TRANSLATED == "1" ]; then
+		printf "${COLOR_YELLOW}\nRemoved, LINGUA already translated.\n${COLOR_NONE}"
+		rm -f $f
+	fi		
+done
+if [[ $(sed -n '$=' availAppFiles) == "" ]]; then
+	printf "${COLOR_YELLOW}\nNo already translated LINGUAs removed.\n${COLOR_NONE}"
+fi
